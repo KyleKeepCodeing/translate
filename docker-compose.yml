@@ -3,22 +3,17 @@ version: '3.8'
 services:
   translate:
     build: .
+    ports:
+      - "8010:8010"
     volumes:
       - .:/app
       - ./model_cache:/root/.cache/modelscope
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: 1
-              capabilities: [gpu]
     environment:
-      - CUDA_VISIBLE_DEVICES=0
       - TRANSFORMERS_CACHE=/app/model_cache
       - MODELSCOPE_CACHE=/app/model_cache
+      - FLASK_ENV=production
     restart: unless-stopped
-    shm_size: '8gb'
+    shm_size: '4gb'
     ulimits:
       memlock: -1
       stack: 67108864
