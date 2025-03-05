@@ -10,7 +10,7 @@
 pip install -r requirements.txt
 
 #或者
-pip3 install -r requirements.txt
+pip3 install flask flask-cors==4.0.0 translate==3.6.1
 
 ```
 
