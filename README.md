@@ -8,6 +8,10 @@
 
 ```bash
 pip install -r requirements.txt
+
+#或者
+pip3 install -r requirements.txt
+
 ```
 
 ## 使用方法
@@ -29,3 +33,7 @@ python main.py
 - 首次运行时，程序会自动下载翻译模型，这可能需要一些时间
 - 请确保您的计算机连接到互联网
 - 建议输入的文本长度适中，过长的文本可能会影响翻译质量
+
+
+curl
+curl -X POST http://localhost:5000/translate -H "Content-Type: application/json" -d "{\"text\": \"你好，帮我把中文翻译成越南语\"}"
