@@ -1,13 +1,11 @@
-version: '3'
+version: '3.8'
 
 services:
-  translator:
+  translate:
     build: .
     volumes:
       - .:/app
-      - model_cache:/root/.cache/modelscope  # 用于缓存模型文件
-    environment:
-      - PYTHONUNBUFFERED=1
+      - ./model_cache:/root/.cache/modelscope
     deploy:
       resources:
         reservations:
@@ -15,6 +13,15 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [gpu]
+    environment:
+      - CUDA_VISIBLE_DEVICES=0
+      - TRANSFORMERS_CACHE=/app/model_cache
+      - MODELSCOPE_CACHE=/app/model_cache
+    restart: unless-stopped
+    shm_size: '8gb'
+    ulimits:
+      memlock: -1
+      stack: 67108864
 
 volumes:
   model_cache: 
