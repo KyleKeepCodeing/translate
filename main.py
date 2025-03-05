@@ -2,16 +2,26 @@
 # -*- coding: utf-8 -*-
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-from translate import Translator
+from modelscope.pipelines import pipeline
+from modelscope.utils.constant import Tasks
 
 app = Flask(__name__)
 CORS(app)  # 启用跨域支持
 
+# 初始化翻译器
+print("正在加载翻译模型...")
+translator = pipeline(
+    Tasks.translation,
+    model='damo/nlp_csanmt_translation_zh2vi',  # 中文到越南语的模型
+    device='cpu'  # 如果有GPU可以改成'gpu'
+)
+print("模型加载完成！")
+
 def translate_to_vietnamese(text):
-    """将中文文本翻译成越南语"""
+    """将中文文本翻译成越南语（离线）"""
     try:
-        translator = Translator(from_lang="zh", to_lang="vi")
-        return translator.translate(text)
+        result = translator(text)
+        return result['translation']
     except Exception as e:
         return str(e)
 
@@ -54,16 +64,16 @@ def health_check():
     """健康检查端点"""
     return jsonify({
         'status': 'ok',
-        'service': 'chinese-vietnamese-translator'
+        'service': 'chinese-vietnamese-translator-offline'
     })
 
 if __name__ == "__main__":
-    print("翻译API服务已启动！")
-    print("健康检查接口：GET http://localhost:5000/health")
-    print("翻译接口：POST http://localhost:5000/translate")
+    print("\n翻译API服务已启动！")
+    print("健康检查接口：GET http://localhost:8010/health")
+    print("翻译接口：POST http://localhost:8010/translate")
     print("示例请求：")
     print('''
-    curl -X POST http://localhost:5000/translate 
+    curl -X POST http://localhost:8010/translate 
          -H "Content-Type: application/json" 
          -d '{"text": "你好，世界"}'
     ''')

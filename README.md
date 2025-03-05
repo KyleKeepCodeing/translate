@@ -11,6 +11,7 @@ pip install -r requirements.txt
 
 #或者
 pip3 install flask flask-cors==4.0.0 translate==3.6.1
+pip install flask==3.0.2 flask-cors==4.0.0 modelscope==1.12.0 torch transformers
 
 ```
 
