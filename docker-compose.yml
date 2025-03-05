@@ -1,0 +1,20 @@
+version: '3'
+
+services:
+  translator:
+    build: .
+    volumes:
+      - .:/app
+      - model_cache:/root/.cache/modelscope  # 用于缓存模型文件
+    environment:
+      - PYTHONUNBUFFERED=1
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+volumes:
+  model_cache: 

@@ -1,5 +1,6 @@
 flask==3.0.2
 flask-cors==4.0.0
 --find-links https://download.pytorch.org/whl/torch_stable.html
-torch
-transformers 
+torch>=2.0.0
+transformers>=4.35.2
+modelscope>=1.9.5 
