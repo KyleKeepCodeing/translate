@@ -2,6 +2,8 @@ version: '3.8'
 
 services:
   translate:
+    name: translate
+    working_dir: /app
     image: modelscope-registry.cn-beijing.cr.aliyuncs.com/modelscope-repo/modelscope:ubuntu22.04-py310-torch2.3.1-1.22.2
     volumes:
       - ./:/app
