@@ -1,44 +1,38 @@
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import MarianMTModel, MarianTokenizer
+from flask import Flask, request, jsonify
 
-# PolyLM-1.7B
-# model_path = "DAMO-NLP-MT/polylm-1.7b"
-# PolyLM-13B
-model_path = "DAMO-NLP-MT/polylm-13b"
-# PolyLM-Multialpaca-13B
-# model_path = "DAMO-NLP-MT/polylm-multialpaca-13b"
-# PolyLM-Chat-13B
-# model_path = "DAMO-NLP-MT/polylm-chat-13b"
+app = Flask(__name__)
 
-tokenizer = AutoTokenizer.from_pretrained(model_path, legacy=False, use_fast=False)
-model = AutoModelForCausalLM.from_pretrained(
-    model_path,
-    device_map="cpu",
-    trust_remote_code=True,
-    offload_folder="offload",
-    low_cpu_mem_usage=True,
-)
-model.eval()
+# 根据需求选择相应模型（此处以中文→越南语为例）
+model_name = "Helsinki-NLP/opus-mt-zh-vi"
 
-# PolyLM-13B/PolyLM-1.7B
-input_doc = f"Beijing is the capital of China.\nTranslate this sentence from English to Chinese."
-# PolyLM-Multialpaca-13B
-# input_doc = f"Beijing is the capital of China.\nTranslate this sentence from English to Chinese.\n\n"
-# PolyLM-Chat-13B
-# input_doc = f"Beijing is the capital of China.\nTranslate this sentence from English to Chinese."
-# input_doc = "<|user|>\n" + f"{input_doc}\n" + "<|assistant|>\n"
+# 下载并加载分词器和模型
+tokenizer = MarianTokenizer.from_pretrained(model_name)
+model = MarianMTModel.from_pretrained(model_name)
 
-inputs = tokenizer(input_doc, return_tensors="pt")
+def translate(text):
+    # 编码输入文本
+    inputs = tokenizer(text, return_tensors="pt", padding=True)
+    # 模型生成翻译结果
+    outputs = model.generate(**inputs)
+    # 解码输出
+    translation = tokenizer.batch_decode(outputs, skip_special_tokens=True)
+    return translation[0]
 
-generate_ids = model.generate(
-  inputs.input_ids,
-  attention_mask=inputs.attention_mask,
-  do_sample=False,
-  num_beams=4,
-  max_length=128,
-  early_stopping=True
-)
+@app.route('/translate', methods=['GET'])
+def translate_text():
+    text = request.args.get('text', '')
+    if not text:
+        return jsonify({'error': '请提供要翻译的文本'}), 400
+    
+    try:
+        translated_text = translate(text)
+        return jsonify({
+            'original_text': text,
+            'translated_text': translated_text
+        })
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
-decoded = tokenizer.batch_decode(generate_ids, skip_special_tokens=True, clean_up_tokenization_spaces=False)[0]
-print(f">>> {decoded}")
-### results
-### Beijing is the capital of China.\nTranslate this sentence from English to Chinese.\\n北京是中华人民共和国的首都。\n ...
+if __name__ == "__main__":
+    app.run(host='0.0.0.0', port=8010)

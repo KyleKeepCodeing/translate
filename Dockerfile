@@ -1,18 +1,13 @@
-FROM modelscope-registry.cn-beijing.cr.aliyuncs.com/modelscope-repo/modelscope:ubuntu22.04-py310-torch2.3.1-1.22.2
-
+FROM python:3.9-slim
 
 WORKDIR /app
 
-# 安装基本依赖
-RUN apt-get update && apt-get install -y \
-    git \
-    && rm -rf /var/lib/apt/lists/*
-
-# 安装 Python 依赖
+COPY main.py .
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
 
-# 复制应用代码
-COPY . .
+RUN pip install torch transformers flask
+RUN pip install sentencepiece
+
+EXPOSE 8010
 
 CMD ["python", "main.py"] 
