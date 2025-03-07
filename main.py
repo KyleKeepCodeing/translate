@@ -23,16 +23,22 @@ def translate(text):
 def translate_text():
     text = request.args.get('text', '')
     if not text:
-        return jsonify({'error': '请提供要翻译的文本'}), 400
+        response = jsonify({'error': '请提供要翻译的文本'})
+        response.headers['Content-Type'] = 'application/json'
+        return response, 400
     
     try:
         translated_text = translate(text)
-        return jsonify({
+        response = jsonify({
             'original_text': text,
             'translated_text': translated_text
         })
+        response.headers['Content-Type'] = 'application/json'
+        return response
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        response = jsonify({'error': str(e)})
+        response.headers['Content-Type'] = 'application/json'
+        return response, 500
 
 if __name__ == "__main__":
     app.run(host='0.0.0.0', port=8010)
