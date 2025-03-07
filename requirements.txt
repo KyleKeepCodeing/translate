@@ -1,7 +1,4 @@
-flask==3.0.2
-flask-cors==4.0.0
-torch>=2.0.0+cpu
-transformers>=4.35.2
-modelscope>=1.9.5
-protobuf>=4.25.1
-sentencepiece>=0.1.99 
+torch>=2.0.0
+transformers>=4.30.0
+accelerate>=0.20.0
+sentencepiece>=0.1.99

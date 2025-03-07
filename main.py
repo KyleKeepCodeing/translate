@@ -1,42 +1,38 @@
-from flask import Flask, request, jsonify
-from flask_cors import CORS
-from modelscope.pipelines import pipeline
-from modelscope.utils.constant import Tasks
-from modelscope import snapshot_download
+from transformers import AutoModelForCausalLM, AutoTokenizer
 
-app = Flask(__name__)
-CORS(app)
+# PolyLM-1.7B
+# model_path = "DAMO-NLP-MT/polylm-1.7b"
+# PolyLM-13B
+model_path = "DAMO-NLP-MT/polylm-13b"
+# PolyLM-Multialpaca-13B
+# model_path = "DAMO-NLP-MT/polylm-multialpaca-13b"
+# PolyLM-Chat-13B
+# model_path = "DAMO-NLP-MT/polylm-chat-13b"
 
-# 初始化模型
-polylm_13b_model_id = 'damo/nlp_polylm_assistant_13b_text_generation'
-revision = 'v1.0.0'
+tokenizer = AutoTokenizer.from_pretrained(model_path, legacy=False, use_fast=False)
+model = AutoModelForCausalLM.from_pretrained(model_path, device_map="auto", trust_remote_code=True)
+model.eval()
 
-print("正在下载模型...")
-model_dir = snapshot_download(polylm_13b_model_id, revision)
+# PolyLM-13B/PolyLM-1.7B
+input_doc = f"Beijing is the capital of China.\nTranslate this sentence from English to Chinese."
+# PolyLM-Multialpaca-13B
+# input_doc = f"Beijing is the capital of China.\nTranslate this sentence from English to Chinese.\n\n"
+# PolyLM-Chat-13B
+# input_doc = f"Beijing is the capital of China.\nTranslate this sentence from English to Chinese."
+# input_doc = "<|user|>\n" + f"{input_doc}\n" + "<|assistant|>\n"
 
-print("正在加载模型...")
-kwargs = {"do_sample": False, "num_beams": 4, "max_new_tokens": 128, "early_stopping": True, "eos_token_id": 2}
-pipeline_ins = pipeline(Tasks.text_generation, model=model_dir, external_engine_for_llm=False)
+inputs = tokenizer(input_doc, return_tensors="pt")
 
-@app.route('/translate', methods=['POST'])
-def translate():
-    try:
-        data = request.get_json()
-        if not data or 'text' not in data:
-            return jsonify({'error': '请提供要翻译的文本'}), 400
+generate_ids = model.generate(
+  inputs.input_ids,
+  attention_mask=inputs.attention_mask,
+  do_sample=False,
+  num_beams=4,
+  max_length=128,
+  early_stopping=True
+)
 
-        input_text = data['text']
-        input_text = "<|user|>\n" + f"{input_text}\n" + "<|assistant|>\n"
-        
-        result = pipeline_ins(input_text, **kwargs)
-        return jsonify({'translation': result['text']})
-    except Exception as e:
-        return jsonify({'error': str(e)}), 500
-
-@app.route('/health', methods=['GET'])
-def health_check():
-    return jsonify({'status': 'healthy'})
-
-if __name__ == '__main__':
-    print("服务启动在 http://localhost:8010")
-    app.run(host='0.0.0.0', port=8010)
+decoded = tokenizer.batch_decode(generate_ids, skip_special_tokens=True, clean_up_tokenization_spaces=False)[0]
+print(f">>> {decoded}")
+### results
+### Beijing is the capital of China.\nTranslate this sentence from English to Chinese.\\n北京是中华人民共和国的首都。\n ...
