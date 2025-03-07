@@ -10,29 +10,44 @@ model_name = "Helsinki-NLP/opus-mt-zh-vi"
 tokenizer = MarianTokenizer.from_pretrained(model_name)
 model = MarianMTModel.from_pretrained(model_name)
 
-def translate(text):
-    # 编码输入文本
-    inputs = tokenizer(text, return_tensors="pt", padding=True)
-    # 模型生成翻译结果
-    outputs = model.generate(**inputs)
-    # 解码输出
-    translation = tokenizer.batch_decode(outputs, skip_special_tokens=True)
-    return translation[0]
+def translate(texts):
+    if isinstance(texts, str):
+        texts = [texts]
+    
+    translations = []
+    for text in texts:
+        # 编码输入文本
+        inputs = tokenizer(text, return_tensors="pt", padding=True)
+        # 模型生成翻译结果
+        outputs = model.generate(**inputs)
+        # 解码输出
+        translation = tokenizer.batch_decode(outputs, skip_special_tokens=True)[0]
+        translations.append(translation)
+    return translations
 
 @app.route('/translate', methods=['GET'])
 def translate_text():
     text = request.args.get('text', '')
-    if not text:
-        response = jsonify({'error': '请提供要翻译的文本'})
+    text_list = request.args.getlist('list')
+    
+    if not text and not text_list:
+        response = jsonify({'error': '请提供要翻译的文本或文本列表'})
         response.headers['Content-Type'] = 'application/json'
         return response, 400
     
     try:
-        translated_text = translate(text)
-        response = jsonify({
-            'original_text': text,
-            'translated_text': translated_text
-        })
+        if text_list:
+            translated_texts = translate(text_list)
+            response = jsonify({
+                'original_text': text_list,
+                'translated_text': translated_texts
+            })
+        else:
+            translated_text = translate(text)[0]
+            response = jsonify({
+                'original_text': [text],
+                'translated_text': [translated_text]
+            })
         response.headers['Content-Type'] = 'application/json'
         return response
     except Exception as e:
