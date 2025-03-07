@@ -1,0 +1,20 @@
+# 忽略目录
+offload/
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# 环境文件
+.env
+.venv
+env/
+venv/
+ENV/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo 

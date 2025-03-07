@@ -10,7 +10,13 @@ model_path = "DAMO-NLP-MT/polylm-13b"
 # model_path = "DAMO-NLP-MT/polylm-chat-13b"
 
 tokenizer = AutoTokenizer.from_pretrained(model_path, legacy=False, use_fast=False)
-model = AutoModelForCausalLM.from_pretrained(model_path, device_map="auto", trust_remote_code=True)
+model = AutoModelForCausalLM.from_pretrained(
+    model_path,
+    device_map="cpu",
+    trust_remote_code=True,
+    offload_folder="offload",
+    low_cpu_mem_usage=True,
+)
 model.eval()
 
 # PolyLM-13B/PolyLM-1.7B
