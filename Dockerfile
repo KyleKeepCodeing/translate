@@ -7,6 +7,7 @@ COPY requirements.txt .
 
 RUN pip install torch transformers flask
 RUN pip install sentencepiece
+RUN pip install sacremoses
 
 EXPOSE 8010
 
